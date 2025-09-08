@@ -45,6 +45,16 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
+@app.route('/users', methods=['GET'])
+def handle_users():
+    try:
+        users = db.session.execute(db.select(User)).scalars().all()
+        user_list = [user.serialize() for user in users]
+        return jsonify({'users': user_list}), 200
+    except Exception as error:
+        print(error)
+        return jsonify({'msg': 'Ocurrio un error', 'error':error}), 500
+
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
