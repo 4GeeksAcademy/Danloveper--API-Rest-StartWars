@@ -33,13 +33,22 @@ class User(db.Model):
             print(error)
             return False
 
-class Character(db.Model):
+class People(db.Model):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String, unique=True)
     gender: Mapped[str] = mapped_column(String)
     hair_color: Mapped[str] = mapped_column(String)
     eye_color: Mapped[str] = mapped_column(String)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'gender': self.gender,
+            'hair_color': self.hair_color,
+            'eye_color': self.eye_color
+        }
 
 class Planet(db.Model):
 
@@ -51,6 +60,17 @@ class Planet(db.Model):
     rotation_period: Mapped[int] = mapped_column(Integer)
     diameter: Mapped[int] = mapped_column(Integer)
 
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'climate': self.climate,
+            'population': self.population,
+            'orbital_period': self.orbital_period,
+            'rotation_period': self.rotation_period,
+            'diameter': self.diameter
+        }
+
 class Vehicle(db.Model):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -58,6 +78,15 @@ class Vehicle(db.Model):
     cargo_capacity: Mapped[int] = mapped_column(Integer)
     consumables: Mapped[str] = mapped_column(String)
     cost_in_credits: Mapped[int] = mapped_column(Integer)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'cargo_capacity': self.cargo_capacity,
+            'consumables': self.consumables,
+            'cost_in_credits': self.cost_in_credits
+        }
 
 class Favorite(db.Model):
 
@@ -69,9 +98,29 @@ class Favorite(db.Model):
     user: Mapped['User'] = relationship(back_populates="favorities")
 
     def get_item(self):
-        if self.model == "character":
-            return db.session.get(Character, self.model_id)
+        if self.model == "people":
+            return db.session.get(People, self.model_id)
         elif self.model == "planet":
             return db.session.get(Planet, self.model_id)
         elif self.model == "vehicle":
-            return db.session.get(Planet, self.model_id)
+            return db.session.get(Vehicle, self.model_id)
+        
+    @classmethod
+    def add_favorite(cls, data):
+        try:
+            favorite = cls(**data)
+            db.session.add(favorite)
+            db.session.commit()
+        except Exception as err:
+            print(err)
+            return None
+        
+    @classmethod
+    def delete_favorite(cls, data):
+        try:
+            favorite = data
+            db.session.delete(favorite)
+            db.session.commit()
+        except Exception as err:
+            print(err)
+            return None
